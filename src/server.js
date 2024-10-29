@@ -1,26 +1,39 @@
-const express = require('express');
-const cors = require('cors');
-const pino = require('pino-http')();
-const { getContacts, getContactById } = require('./controllers/contactsController');
+import express from 'express';
+import pino from 'pino-http';
+import cors from 'cors';
+import { env } from './utils/env.js';
+import contactsRouter from './routers/contacts.js';
+import { notFoundHandler } from './middlewares/notFoundHandler.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
-const setupServer = () => {
-    const app = express();
-    app.use(pino);
-    app.use(cors());
-    app.use(express.json());
+const PORT = Number(env('PORT', '3000'));
 
-    app.get('/contacts', getContacts);
-    app.get('/contacts/:contactId', getContactById);
-    app.use((req, res) => {
-      res.status(404).json({ message: 'Not found' });
-    });
+export const setupServer = () => {
+  const app = express();
 
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    });
+  app.use(
+    express.json({
+      type: ['application/json', 'application/vnd.api+json'],
+      limit: '100kb',
+    }),
+  );
+  app.use(cors());
 
-    return app;
+  app.use(
+    pino({
+      transport: {
+        target: 'pino-pretty',
+      },
+    }),
+  );
+
+  app.use(contactsRouter);
+
+  app.use('*', notFoundHandler);
+
+  app.use(errorHandler);
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 };
-
-module.exports = setupServer;
