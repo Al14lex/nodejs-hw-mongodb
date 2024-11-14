@@ -8,11 +8,12 @@ export const getAllContactsServies = async ({
   sortOrder = SORT_ORDER.ASC,
   sortBy = '_id',
   filter = {},
+  userId,
 }) => {
   const limit = perPage;
   const skip = (page - 1) * perPage;
 
-  const contactsQuery = ContactsCollection.find();
+  const contactsQuery = ContactsCollection.find({ userId });
 
   if (filter.contactType) {
     contactsQuery.where('contactType').equals(filter.contactType);
@@ -21,14 +22,15 @@ export const getAllContactsServies = async ({
     contactsQuery.where('isFavourite').equals(filter.isFavourite);
   }
 
-  const [contactsCount, contacts] = await Promise.all([
-    ContactsCollection.find().merge(contactsQuery).countDocuments(),
-    contactsQuery
-      .skip(skip)
-      .limit(limit)
-      .sort({ [sortBy]: sortOrder })
-      .exec(),
-  ]);
+  const contactsCount = await ContactsCollection.find({ userId })
+    .merge(contactsQuery)
+    .countDocuments();
+
+  const contacts = await contactsQuery
+    .skip(skip)
+    .limit(limit)
+    .sort({ [sortBy]: sortOrder })
+    .exec();
 
   const paginationData = calculatePaginationData(contactsCount, perPage, page);
 
@@ -38,19 +40,33 @@ export const getAllContactsServies = async ({
   };
 };
 
-export const getContactById = (contactId) =>
-  ContactsCollection.findById(contactId);
+export const getContactById = async (contactId, userId) => {
+  const contact = await ContactsCollection.findOne({ _id: contactId, userId });
+  return contact;
+};
 
-export const createContactServies = (payload) =>
-  ContactsCollection.create(payload);
+export const createContactServies = async (payload) => {
+  const contact = await ContactsCollection.create(payload);
+  return contact;
+};
 
-export const deleteContactServies = (contactId) =>
-  ContactsCollection.findByIdAndDelete(contactId);
+export const deleteContactServies = async (contactId, userId) => {
+  const contact = await ContactsCollection.findOneAndDelete({
+    _id: contactId,
+    userId,
+  });
+  return contact;
+};
 
 // використоауємо для put та patch у контролері
-export const updateContactServies = async (contactId, payload, option = {}) => {
-  const result = await ContactsCollection.findByIdAndUpdate(
-    { _id: contactId },
+export const updateContactServies = async (
+  contactId,
+  userId,
+  payload,
+  option = {},
+) => {
+  const result = await ContactsCollection.findOneAndUpdate(
+    { _id: contactId, userId },
     payload,
     {
       new: true,

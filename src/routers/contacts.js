@@ -13,9 +13,12 @@ import { validateBody } from '../middlewares/validateBody.js';
 import { validateId } from '../middlewares/validateId.js';
 import { createContactSchema } from '../validation/createContactSchema.js';
 import { updateContactSchema } from '../validation/updateContactSchema.js';
+import { authenticate } from '../middlewares/authenticate.js';
 
 const router = Router();
 const jsonParser = express.json();
+
+router.use(authenticate);
 
 router.get('/', ctrlWrapper(getAllContactsController));
 
@@ -34,6 +37,7 @@ router.put(
   '/:contactId',
   validateId,
   jsonParser,
+  validateBody(createContactSchema),
   ctrlWrapper(updateContactController),
 );
 
