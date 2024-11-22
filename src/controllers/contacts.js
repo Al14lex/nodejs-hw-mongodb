@@ -42,10 +42,11 @@ export const getContactByIdController = async (req, res) => {
   // console.log(contactId);
   const contact = await getContactById(contactId, req.user._id);
 
+  // якщо не знайдено контакт
   if (!contact) {
     throw createHttpError(404, 'Sorry, we don`t have find a contact!');
   }
-
+  // якщо знайдено контакт
   res.status(200).json({
     status: 200,
     message: `Successfully found contact with id ${contactId}!`,
