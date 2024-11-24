@@ -8,10 +8,16 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import cookieParser from 'cookie-parser';
 import { UPLOAD_DIR } from './constants/index.js';
 
-const PORT = Number(env('PORT', '3000'));
+// const PORT = Number(env('PORT', '3000'));
+const PORT = process.env.PORT || Number(env('PORT', '3000'));
+
 
 export const setupServer = () => {
   const app = express();
+
+  app.get('/', (req, res) => {
+  res.send('Welcome to the API');
+});
 
   app.use(
     express.json({

@@ -10,6 +10,15 @@ cloudinary.v2.config({
   api_secret: env(CLOUDINARY.API_SECRET),
 });
 
+(async () => {
+  try {
+    const result = await cloudinary.v2.api.ping();
+    console.log('Cloudinary connection successful:', result);
+  } catch (error) {
+    console.error('Cloudinary connection failed:', error.message);
+  }
+})();
+
 export const saveFileToCloudinary = async (file) => {
   const response = await cloudinary.v2.uploader.upload(file.path);
   await fs.unlink(file.path);
